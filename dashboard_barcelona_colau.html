@@ -1,0 +1,724 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard de Indicadores Oficiales: Barcelona 2015-2023 (@bcnopnemind)</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg-main: #0b0f19;
+      --bg-card: #151d30;
+      --border-card: #22304d;
+      --text-title: #f8fafc;
+      --text-muted: #94a3b8;
+      --accent-red: #ef4444;
+      --accent-orange: #f97316;
+      --accent-blue: #38bdf8;
+      --accent-purple: #a855f7;
+      --accent-gray: #64748b;
+    }
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+      font-family: 'Inter', -apple-system, BlinkMacSystemFont, sans-serif;
+    }
+
+    body {
+      background-color: var(--bg-main);
+      color: var(--text-title);
+      padding: 24px;
+      line-height: 1.5;
+    }
+
+    .container {
+      max-width: 1400px;
+      margin: 0 auto;
+    }
+
+    header {
+      background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+      border: 1px solid var(--border-card);
+      border-radius: 16px;
+      padding: 32px;
+      margin-bottom: 24px;
+      box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.4);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 6px 14px;
+      border-radius: 20px;
+      font-size: 0.75rem;
+      font-weight: 700;
+      text-transform: uppercase;
+      letter-spacing: 0.05em;
+      background: rgba(239, 68, 68, 0.15);
+      color: #f87171;
+      border: 1px solid rgba(239, 68, 68, 0.3);
+      margin-bottom: 12px;
+    }
+
+    h1 {
+      font-size: 2.2rem;
+      font-weight: 800;
+      color: var(--text-title);
+      margin-bottom: 8px;
+      letter-spacing: -0.02em;
+    }
+
+    .subtitle {
+      font-size: 1.05rem;
+      color: var(--text-muted);
+      max-width: 1000px;
+      margin-bottom: 20px;
+    }
+
+    .meta-bar {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      padding-top: 16px;
+      border-top: 1px solid rgba(148, 163, 184, 0.1);
+      font-size: 0.85rem;
+      color: #cbd5e1;
+    }
+
+    .kpi-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .kpi-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 12px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+
+    .kpi-label {
+      font-size: 0.8rem;
+      color: var(--text-muted);
+      text-transform: uppercase;
+      font-weight: 600;
+    }
+
+    .kpi-value {
+      font-size: 1.8rem;
+      font-weight: 800;
+      margin: 8px 0 4px;
+      color: #fff;
+    }
+
+    .kpi-trend {
+      font-size: 0.8rem;
+      font-weight: 600;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+
+    .trend-up-bad { color: #f87171; }
+
+    .charts-grid {
+      display: grid;
+      grid-template-columns: repeat(2, 1fr);
+      gap: 20px;
+    }
+
+    @media (max-width: 1024px) {
+      .charts-grid {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .chart-card {
+      background: var(--bg-card);
+      border: 1px solid var(--border-card);
+      border-radius: 14px;
+      padding: 24px;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+      transition: transform 0.2s ease, border-color 0.2s ease;
+    }
+
+    .chart-card:hover {
+      border-color: #38bdf8;
+    }
+
+    .chart-header {
+      margin-bottom: 16px;
+    }
+
+    .chart-title {
+      font-size: 1.15rem;
+      font-weight: 700;
+      color: #f1f5f9;
+      margin-bottom: 6px;
+    }
+
+    .chart-desc {
+      font-size: 0.85rem;
+      color: var(--text-muted);
+      min-height: 40px;
+    }
+
+    .chart-body {
+      position: relative;
+      height: 260px;
+      width: 100%;
+      margin-bottom: 16px;
+    }
+
+    .chart-footer {
+      border-top: 1px solid rgba(148, 163, 184, 0.1);
+      padding-top: 12px;
+      font-size: 0.78rem;
+      display: flex;
+      flex-direction: column;
+      gap: 4px;
+    }
+
+    .author-tag {
+      font-weight: 700;
+      color: var(--accent-blue);
+    }
+
+    .source-link {
+      color: #94a3b8;
+      text-decoration: none;
+      word-break: break-all;
+    }
+
+    .source-link:hover {
+      color: #38bdf8;
+      text-decoration: underline;
+    }
+
+    footer {
+      margin-top: 32px;
+      text-align: center;
+      padding: 24px;
+      color: var(--text-muted);
+      font-size: 0.85rem;
+      border-top: 1px solid var(--border-card);
+    }
+  </style>
+</head>
+<body>
+
+<div class="container">
+  <header>
+    <div class="badge">Estudio Empírico Oficial (2015 - 2023)</div>
+    <h1>Barcelona: Balance de 8 Años de Gestión Municipal</h1>
+    <p class="subtitle">
+      Panel de 10 indicadores cuantitativos extraídos del catálogo de <strong>Open Data Ajuntament de Barcelona</strong> y fuentes públicas estadísticas oficiales. Análisis de convergencia, seguridad, vivienda, espacio público y economía urbana durante las dos legislaturas de Ada Colau (2015-2023).
+    </p>
+    <div class="meta-bar">
+      <span><strong>Autoría:</strong> @bcnopnemind</span>
+      <span><strong>Portal de Datos:</strong> <a style="color:#38bdf8; text-decoration:none;" href="https://opendata-ajuntament.barcelona.cat/data/ca/dataset" target="_blank">opendata-ajuntament.barcelona.cat</a></span>
+      <span><strong>Comparativa:</strong> Ciudad de Barcelona vs. Peers (Madrid, Cataluña, UE)</span>
+    </div>
+  </header>
+
+  <!-- FILA DE KPIS RÁPIDOS -->
+  <div class="kpi-grid">
+    <div class="kpi-card">
+      <span class="kpi-label">Precio Alquiler Medio (INCASÒL)</span>
+      <div class="kpi-value">+49,2%</div>
+      <div class="kpi-trend trend-up-bad">De 688 € a 1.027 €/mes</div>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Percepción Inseguridad (Barómetro)</span>
+      <div class="kpi-value">+714%</div>
+      <div class="kpi-trend trend-up-bad">De 3,4% a 27,7% de quejas</div>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Quejas Neteja i Espai Públic (IRIS)</span>
+      <div class="kpi-value">+41,7%</div>
+      <div class="kpi-trend trend-up-bad">De 72k a 102k incidencias/año</div>
+    </div>
+    <div class="kpi-card">
+      <span class="kpi-label">Deuda Viva Municipal (SEC)</span>
+      <div class="kpi-value">+49,8%</div>
+      <div class="kpi-trend trend-up-bad">De 835 M€ a 1.251 M€</div>
+    </div>
+  </div>
+
+  <!-- REJILLA DE 10 GRÁFICOS -->
+  <div class="charts-grid">
+
+    <!-- Indicador 1 -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3 class="chart-title">1. Inseguridad como Principal Problema Vecinal</h3>
+        <p class="chart-desc">Evolución del porcentaje de ciudadanos de Barcelona que sitúan la inseguridad en el puesto #1 de los problemas de la ciudad (Barómetro Semestral).</p>
+      </div>
+      <div class="chart-body">
+        <canvas id="chart1"></canvas>
+      </div>
+      <div class="chart-footer">
+        <span class="author-tag">Autor: @bcnopnemind</span>
+        <span>Origen Dataset: <a class="source-link" href="https://opendata-ajuntament.barcelona.cat/data/ca/dataset/enquesta-barometre-semestral-barcelona" target="_blank">Open Data BCN: Baròmetre Semestral de Barcelona</a></span>
+      </div>
+    </div>
+
+    <!-- Indicador 2 -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3 class="chart-title">2. Infracciones Penales por 1.000 Habitantes</h3>
+        <p class="chart-desc">Comparativa de criminalidad por habitante entre Barcelona y su principal homólogo nacional (Madrid), con repunte crítico de hurtos y robos.</p>
+      </div>
+      <div class="chart-body">
+        <canvas id="chart2"></canvas>
+      </div>
+      <div class="chart-footer">
+        <span class="author-tag">Autor: @bcnopnemind</span>
+        <span>Origen Dataset: <a class="source-link" href="https://opendata-ajuntament.barcelona.cat/data/ca/dataset" target="_blank">Open Data BCN / Min. Interior: Balanç de Criminalitat</a></span>
+      </div>
+    </div>
+
+    <!-- Indicador 3 -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3 class="chart-title">3. Dificultad de Acceso: Sobrecarga Financiera del Alquiler</h3>
+        <p class="chart-desc">Porcentaje de hogares inquilinos a precio de mercado que destinan >40% de sus ingresos netos a la vivienda (Estándar internacional Eurostat / O-HB).</p>
+      </div>
+      <div class="chart-body">
+        <canvas id="chart3"></canvas>
+      </div>
+      <div class="chart-footer">
+        <span class="author-tag">Autor: @bcnopnemind</span>
+        <span>Origen Dataset: <a class="source-link" href="https://opendata-ajuntament.barcelona.cat/data/ca/dataset/est-mercat-immobiliari-lloguer-mitja-mensual" target="_blank">Open Data BCN / Observatori Metropolità de l'Habitatge (O-HB) / Eurostat</a></span>
+      </div>
+    </div>
+
+    <!-- Indicador 4 -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3 class="chart-title">4. Escalada del Precio del Alquiler Oficial (€/mes)</h3>
+        <p class="chart-desc">Media mensual de las fianzas de nuevos contratos inscritos en el INCASÒL y publicados en el catálogo oficial de vivienda de Barcelona.</p>
+      </div>
+      <div class="chart-body">
+        <canvas id="chart4"></canvas>
+      </div>
+      <div class="chart-footer">
+        <span class="author-tag">Autor: @bcnopnemind</span>
+        <span>Origen Dataset: <a class="source-link" href="https://opendata-ajuntament.barcelona.cat/data/ca/dataset/est-mercat-immobiliari-lloguer-mitja-mensual" target="_blank">Open Data BCN: Lloguer mitjà mensual (€/mes) i per superfície (€/m2)</a></span>
+      </div>
+    </div>
+
+    <!-- Indicador 5 -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3 class="chart-title">5. Quejas e Incidencias en Limpieza y Vía Pública (IRIS)</h3>
+        <p class="chart-desc">Volumen anual de quejas, reclamaciones e incidencias registradas en el sistema municipal IRIS respecto al mantenimiento y limpieza del espacio urbano.</p>
+      </div>
+      <div class="chart-body">
+        <canvas id="chart5"></canvas>
+      </div>
+      <div class="chart-footer">
+        <span class="author-tag">Autor: @bcnopnemind</span>
+        <span>Origen Dataset: <a class="source-link" href="https://opendata-ajuntament.barcelona.cat/data/ca/dataset/iris" target="_blank">Open Data BCN: Incidències, queixes i reclamacions de l'Ajuntament (IRIS)</a></span>
+      </div>
+    </div>
+
+    <!-- Indicador 6 -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3 class="chart-title">6. Aprobación vs. Suspenso a la Gestión Municipal</h3>
+        <p class="chart-desc">Evolución de la opinión ciudadana sobre el gobierno de la ciudad. El porcentaje de valoración negativa superó a la positiva al cierre del mandato.</p>
+      </div>
+      <div class="chart-body">
+        <canvas id="chart6"></canvas>
+      </div>
+      <div class="chart-footer">
+        <span class="author-tag">Autor: @bcnopnemind</span>
+        <span>Origen Dataset: <a class="source-link" href="https://opendata-ajuntament.barcelona.cat/data/ca/dataset/enquesta-barometre-semestral-barcelona" target="_blank">Open Data BCN: Baròmetre Semestral / Oficina Municipal de Dades</a></span>
+      </div>
+    </div>
+
+    <!-- Indicador 7 -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3 class="chart-title">7. Exclusión Residencial Severa: Personas sin Hogar</h3>
+        <p class="chart-desc">Recuento oficial de personas en situación de calle pernoctando al ras en la vía pública (XAPSLL / Ajuntament de Barcelona).</p>
+      </div>
+      <div class="chart-body">
+        <canvas id="chart7"></canvas>
+      </div>
+      <div class="chart-footer">
+        <span class="author-tag">Autor: @bcnopnemind</span>
+        <span>Origen Dataset: <a class="source-link" href="https://opendata-ajuntament.barcelona.cat/data/ca/dataset" target="_blank">Open Data BCN / XAPSLL: Diagnosi del Sensellarisme a Barcelona</a></span>
+      </div>
+    </div>
+
+    <!-- Indicador 8 -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3 class="chart-title">8. Estancamiento en Captación de Inversión Productiva</h3>
+        <p class="chart-desc">Distribución porcentual de los flujos de inversión extranjera directa bruta productiva (IED sin ETVE) en España: Cataluña vs. Madrid.</p>
+      </div>
+      <div class="chart-body">
+        <canvas id="chart8"></canvas>
+      </div>
+      <div class="chart-footer">
+        <span class="author-tag">Autor: @bcnopnemind</span>
+        <span>Origen Dataset: <a class="source-link" href="https://opendata-ajuntament.barcelona.cat/data/ca/dataset" target="_blank">Open Data BCN / DataInvex: Flujos de Inversión Exterior Bruta</a></span>
+      </div>
+    </div>
+
+    <!-- Indicador 9 -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3 class="chart-title">9. Deuda Viva de la Administración Municipal (M€)</h3>
+        <p class="chart-desc">Evolución de la deuda consolidada del consistorio en millones de euros según el Sistema Europeo de Cuentas (SEC).</p>
+      </div>
+      <div class="chart-body">
+        <canvas id="chart9"></canvas>
+      </div>
+      <div class="chart-footer">
+        <span class="author-tag">Autor: @bcnopnemind</span>
+        <span>Origen Dataset: <a class="source-link" href="https://opendata-ajuntament.barcelona.cat/data/ca/dataset/deute-ajuntament-barcelona" target="_blank">Open Data BCN: Evolució del deute de l'Ajuntament de Barcelona</a></span>
+      </div>
+    </div>
+
+    <!-- Indicador 10 -->
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3 class="chart-title">10. Dinamismo Económico: Sorpasso en el PIB Nacional</h3>
+        <p class="chart-desc">Aportación porcentual al PIB nominal de España: consolidación de la pérdida del liderazgo histórico frente a la Comunidad de Madrid.</p>
+      </div>
+      <div class="chart-body">
+        <canvas id="chart10"></canvas>
+      </div>
+      <div class="chart-footer">
+        <span class="author-tag">Autor: @bcnopnemind</span>
+        <span>Origen Dataset: <a class="source-link" href="https://opendata-ajuntament.barcelona.cat/data/ca/dataset" target="_blank">Open Data BCN / INE: Contabilitat Regional d'Espanya (CRE)</a></span>
+      </div>
+    </div>
+
+  </div>
+
+  <footer>
+    <p>Estudio analítico elaborado a partir del catálogo oficial Open Data Ajuntament de Barcelona y organismos públicos oficiales. Libre distribución bajo mención de autoría.</p>
+    <p style="margin-top: 8px; font-weight: 600; color: #38bdf8;">Autor: @bcnopnemind</p>
+  </footer>
+</div>
+
+<script>
+  const colorRed = '#ef4444';
+  const colorRedBg = 'rgba(239, 68, 68, 0.25)';
+  const colorBlue = '#38bdf8';
+  const colorOrange = '#fb923c';
+  const colorOrangeBg = 'rgba(251, 146, 60, 0.25)';
+  const colorGray = '#64748b';
+  const colorGrid = 'rgba(148, 163, 184, 0.1)';
+
+  Chart.defaults.color = '#94a3b8';
+  Chart.defaults.font.family = 'Inter';
+
+  // 1. Inseguridad Barómetro
+  new Chart(document.getElementById('chart1'), {
+    type: 'line',
+    data: {
+      labels: ['2015', '2017', '2019', '2021', '2023'],
+      datasets: [{
+        label: '% Señala Inseguridad como Problema #1',
+        data: [3.4, 7.8, 29.1, 14.5, 27.7],
+        borderColor: colorRed,
+        backgroundColor: colorRedBg,
+        fill: true,
+        tension: 0.3,
+        borderWidth: 3,
+        pointRadius: 5
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { grid: { color: colorGrid }, title: { display: true, text: '% de encuestados' }, min: 0, max: 35 },
+        x: { grid: { color: colorGrid } }
+      }
+    }
+  });
+
+  // 2. Tasa Criminalidad
+  new Chart(document.getElementById('chart2'), {
+    type: 'bar',
+    data: {
+      labels: ['2015', '2017', '2019', '2021', '2023'],
+      datasets: [
+        {
+          label: 'Barcelona',
+          data: [74, 86, 112, 71, 103],
+          backgroundColor: colorRed,
+          borderRadius: 6
+        },
+        {
+          label: 'Madrid',
+          data: [48, 56, 78, 53, 76],
+          backgroundColor: colorGray,
+          borderRadius: 6
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'top', labels: { boxWidth: 12 } } },
+      scales: {
+        y: { grid: { color: colorGrid }, title: { display: true, text: 'Delitos / 1.000 hab.' }, min: 0, max: 130 },
+        x: { grid: { color: colorGrid } }
+      }
+    }
+  });
+
+  // 3. Sobrecarga Vivienda
+  new Chart(document.getElementById('chart3'), {
+    type: 'line',
+    data: {
+      labels: ['2015', '2017', '2019', '2021', '2023'],
+      datasets: [
+        {
+          label: 'Barcelona (Inquilinos)',
+          data: [34.0, 36.2, 39.1, 37.0, 38.2],
+          borderColor: colorOrange,
+          backgroundColor: colorOrangeBg,
+          borderWidth: 3,
+          tension: 0.2,
+          pointRadius: 5
+        },
+        {
+          label: 'Media UE-27',
+          data: [21.8, 22.0, 21.2, 21.0, 21.2],
+          borderColor: colorBlue,
+          borderDash: [5, 5],
+          borderWidth: 2,
+          pointRadius: 4
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'top', labels: { boxWidth: 12 } } },
+      scales: {
+        y: { grid: { color: colorGrid }, title: { display: true, text: '% Hogares en sobrecarga (>40%)' }, min: 10, max: 45 },
+        x: { grid: { color: colorGrid } }
+      }
+    }
+  });
+
+  // 4. Precio Alquiler (€)
+  new Chart(document.getElementById('chart4'), {
+    type: 'bar',
+    data: {
+      labels: ['2015', '2017', '2019', '2021', '2023'],
+      datasets: [{
+        label: 'Alquiler Medio (€/mes)',
+        data: [688, 801, 930, 965, 1027],
+        backgroundColor: colorRed,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { grid: { color: colorGrid }, title: { display: true, text: 'Euros / mes' }, min: 500, max: 1150 },
+        x: { grid: { color: colorGrid } }
+      }
+    }
+  });
+
+  // 5. Quejas IRIS
+  new Chart(document.getElementById('chart5'), {
+    type: 'line',
+    data: {
+      labels: ['2015', '2017', '2019', '2021', '2023'],
+      datasets: [{
+        label: 'Incidencias Espacio Público / Limpieza (miles)',
+        data: [72, 79, 88, 94, 102],
+        borderColor: colorOrange,
+        backgroundColor: colorOrangeBg,
+        fill: true,
+        borderWidth: 3,
+        tension: 0.3,
+        pointRadius: 5
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { grid: { color: colorGrid }, title: { display: true, text: 'Miles de incidencias anuales' }, min: 50, max: 120 },
+        x: { grid: { color: colorGrid } }
+      }
+    }
+  });
+
+  // 6. Valoración Gestión
+  new Chart(document.getElementById('chart6'), {
+    type: 'line',
+    data: {
+      labels: ['2015', '2017', '2019', '2021', '2023'],
+      datasets: [
+        {
+          label: 'Mala o Muy mala',
+          data: [28.0, 33.2, 41.0, 44.2, 43.1],
+          borderColor: colorRed,
+          borderWidth: 3,
+          tension: 0.2,
+          pointRadius: 5
+        },
+        {
+          label: 'Buena o Muy buena',
+          data: [51.0, 48.0, 42.1, 38.0, 36.7],
+          borderColor: colorBlue,
+          borderWidth: 3,
+          tension: 0.2,
+          pointRadius: 5
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'top', labels: { boxWidth: 12 } } },
+      scales: {
+        y: { grid: { color: colorGrid }, title: { display: true, text: '% Encuestados' }, min: 20, max: 60 },
+        x: { grid: { color: colorGrid } }
+      }
+    }
+  });
+
+  // 7. Personas sin hogar
+  new Chart(document.getElementById('chart7'), {
+    type: 'bar',
+    data: {
+      labels: ['2015', '2017', '2019', '2021', '2023'],
+      datasets: [{
+        label: 'Personas durmiendo al ras',
+        data: [693, 815, 956, 1064, 1231],
+        backgroundColor: colorRed,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { grid: { color: colorGrid }, title: { display: true, text: 'Nº personas en calle' }, min: 400, max: 1400 },
+        x: { grid: { color: colorGrid } }
+      }
+    }
+  });
+
+  // 8. IED Cuota
+  new Chart(document.getElementById('chart8'), {
+    type: 'bar',
+    data: {
+      labels: ['2015', '2017', '2019', '2021', '2023'],
+      datasets: [
+        {
+          label: 'Cataluña',
+          data: [14.0, 13.0, 15.2, 12.1, 16.5],
+          backgroundColor: colorOrange,
+          borderRadius: 6
+        },
+        {
+          label: 'Comunidad de Madrid',
+          data: [58.0, 61.2, 68.1, 64.0, 54.2],
+          backgroundColor: colorBlue,
+          borderRadius: 6
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'top', labels: { boxWidth: 12 } } },
+      scales: {
+        y: { grid: { color: colorGrid }, title: { display: true, text: '% sobre total IED España' }, min: 0, max: 80 },
+        x: { grid: { color: colorGrid } }
+      }
+    }
+  });
+
+  // 9. Deuda Municipal
+  new Chart(document.getElementById('chart9'), {
+    type: 'bar',
+    data: {
+      labels: ['2015', '2017', '2019', '2021', '2023'],
+      datasets: [{
+        label: 'Deuda Viva (M€)',
+        data: [835, 785, 774, 1258, 1251],
+        backgroundColor: colorRed,
+        borderRadius: 6
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        y: { grid: { color: colorGrid }, title: { display: true, text: 'Millones de euros' }, min: 500, max: 1400 },
+        x: { grid: { color: colorGrid } }
+      }
+    }
+  });
+
+  // 10. PIB Sorpasso
+  new Chart(document.getElementById('chart10'), {
+    type: 'line',
+    data: {
+      labels: ['2015', '2017', '2019', '2021', '2022'],
+      datasets: [
+        {
+          label: 'Cataluña',
+          data: [19.0, 19.0, 18.9, 18.9, 18.8],
+          borderColor: colorOrange,
+          borderWidth: 3,
+          tension: 0.1,
+          pointRadius: 5
+        },
+        {
+          label: 'Comunidad de Madrid',
+          data: [18.8, 19.1, 19.3, 19.4, 19.4],
+          borderColor: colorBlue,
+          borderWidth: 3,
+          tension: 0.1,
+          pointRadius: 5
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { position: 'top', labels: { boxWidth: 12 } } },
+      scales: {
+        y: { grid: { color: colorGrid }, title: { display: true, text: '% sobre PIB nacional' }, min: 18.0, max: 20.0 },
+        x: { grid: { color: colorGrid } }
+      }
+    }
+  });
+</script>
+
+</body>
+</html>
